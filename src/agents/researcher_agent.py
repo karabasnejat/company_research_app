@@ -22,28 +22,81 @@ class ResearcherAgent:
         )
     
     def _create_search_queries(self, company_name: str, partners: List[str]) -> List[str]:
-        """Generate search queries for the company and partners"""
+        """Generate comprehensive search queries for Turkish companies and partners"""
+        # Sanitize inputs to prevent query breakage
+        def sanitize_query_input(text: str) -> str:
+            """Escape quotes and backslashes for safe query interpolation"""
+            return text.replace('\\', '\\\\').replace('"', '\\"')
+        
+        sanitized_company_name = sanitize_query_input(company_name)
+        sanitized_partners = [sanitize_query_input(partner) for partner in partners]
+        
         queries = []
         
-        # Main company search
-        queries.append(f'"{company_name}" company information business profile')
-        queries.append(f'"{company_name}" financial information revenue')
-        queries.append(f'"{company_name}" news recent developments')
+        # KAP (Kamuyu Aydınlatma Platformu) aramaları
+        queries.extend([
+            f'site:kap.org.tr "{sanitized_company_name}"',
+            f'site:kap.org.tr "{sanitized_company_name}" mali tablo',
+            f'site:kap.org.tr "{sanitized_company_name}" yatırımcı sunumu',
+            f'site:kap.org.tr "{sanitized_company_name}" özel durum açıklaması'
+        ])
         
-        # Partner searches
-        for partner in partners:
-            queries.append(f'"{partner}" "{company_name}" executive biography')
-            queries.append(f'"{partner}" business executive profile')
+        # Ticaret Sicil Gazetesi aramaları
+        queries.extend([
+            f'site:ticaretsicil.gov.tr "{sanitized_company_name}"',
+            f'"{sanitized_company_name}" ticaret sicili',
+            f'"{sanitized_company_name}" sermaye artırımı',
+            f'"{sanitized_company_name}" ortaklık yapısı değişikliği'
+        ])
         
-        # Combined searches
-        partners_str = " ".join([f'"{partner}"' for partner in partners[:3]])  # Limit to first 3
-        queries.append(f'"{company_name}" {partners_str} executives management')
+        # LinkedIn profesyonel aramaları
+        for sanitized_partner in sanitized_partners[:5]:  # İlk 5 ortak için
+            queries.extend([
+                f'site:linkedin.com "{sanitized_partner}" "{sanitized_company_name}"',
+                f'site:linkedin.com "{sanitized_partner}" türkiye'
+            ])
+        
+        # Genel şirket bilgileri
+        queries.extend([
+            f'"{sanitized_company_name}" şirket profili',
+            f'"{sanitized_company_name}" faaliyet alanı',
+            f'"{sanitized_company_name}" finansal durum',
+            f'"{sanitized_company_name}" son gelişmeler haberler'
+        ])
+        
+        # Ortak/partner aramaları
+        for sanitized_partner in sanitized_partners[:3]:  # İlk 3 ortak için detaylı arama
+            queries.extend([
+                f'"{sanitized_partner}" "{sanitized_company_name}" yönetici',
+                f'"{sanitized_partner}" iş deneyimi özgeçmiş',
+                f'"{sanitized_partner}" şirket ortağı'
+            ])
+        
+        # Risk ve hukuki aramaları
+        queries.extend([
+            f'"{sanitized_company_name}" dava icra borç',
+            f'"{sanitized_company_name}" risk analizi',
+            f'"{sanitized_company_name}" olumsuz haber'
+        ])
+        
+        # Resmi kaynak aramaları
+        queries.extend([
+            f'site:resmigazete.gov.tr "{sanitized_company_name}"',
+            f'site:ilan.gov.tr "{sanitized_company_name}"'
+        ])
+        
+        # Kombine aramalar
+        partners_str = " ".join([f'"{sanitized_partner}"' for sanitized_partner in sanitized_partners[:3]])
+        queries.extend([
+            f'"{sanitized_company_name}" {partners_str} yönetim',
+            f'"{sanitized_company_name}" ortaklar kurucu'
+        ])
         
         return queries
     
     async def research(self, company_name: str, partners: List[str]) -> List[ResearchResult]:
         """
-        Research the company and its partners
+        Research the company and its partners with Turkish-focused strategy
         
         Args:
             company_name: Name of the company to research
@@ -52,17 +105,51 @@ class ResearcherAgent:
         Returns:
             List of ResearchResult objects containing search results
         """
-        # Generate search queries
+        print(f"🔍 Başlıyor: {company_name} şirketi araştırması")
+        print(f"👥 Ortaklar: {', '.join(partners)}")
+        
+        # Generate comprehensive search queries
         queries = self._create_search_queries(company_name, partners)
+        print(f"📋 {len(queries)} arama sorgusu oluşturuldu")
         
-        print(f"Generated {len(queries)} search queries for research")
+        # Perform general searches
+        print("🌐 Genel aramalar yapılıyor...")
+        general_results = await self.tavily_service.search_multiple(queries)
         
-        # Perform searches
-        research_results = await self.tavily_service.search_multiple(queries)
+        # Perform legal and regulatory focused searches
+        print("⚖️ Hukuki ve düzenleyici aramalar yapılıyor...")
+        legal_results = await self.tavily_service.search_with_legal_focus(company_name, partners)
         
-        print(f"Completed research with {len(research_results)} result sets")
+        # Combine all results
+        all_results = general_results + legal_results
         
-        return research_results
+        # Remove duplicates based on URL
+        seen_urls = set()
+        unique_results = []
+        for result in all_results:
+            # Build filtered list containing only new URLs for this result set
+            filtered_results = []
+            for search_result in result.results:
+                # Normalize URL by removing UTM params and trailing slash
+                normalized_url = self._normalize_url(search_result.url)
+                if normalized_url not in seen_urls:
+                    seen_urls.add(normalized_url)
+                    filtered_results.append(search_result)
+            
+            # Only append result if filtered list has new URLs
+            if filtered_results:
+                # Create new result with filtered list
+                filtered_result = ResearchResult(
+                    query=result.query,
+                    results=filtered_results,
+                    partners_mentioned=result.partners_mentioned
+                )
+                unique_results.append(filtered_result)
+        
+        total_results = sum(len(result.results) for result in unique_results)
+        print(f"✅ Araştırma tamamlandı: {len(unique_results)} sorgu seti, {total_results} toplam sonuç")
+        
+        return unique_results
     
     def get_research_summary(self, research_results: List[ResearchResult]) -> str:
         """Generate a brief summary of research findings"""
@@ -70,3 +157,34 @@ class ResearcherAgent:
         successful_queries = len([r for r in research_results if r.results])
         
         return f"Research completed: {successful_queries} successful queries, {total_results} total results found"
+    
+    def _normalize_url(self, url: str) -> str:
+        """Normalize URL by removing UTM parameters and trailing slash"""
+        from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+        
+        parsed = urlparse(url)
+        
+        # Remove UTM parameters and other tracking parameters
+        query_params = parse_qs(parsed.query)
+        filtered_params = {
+            k: v for k, v in query_params.items() 
+            if not k.lower().startswith(('utm_', 'gclid', 'fbclid', 'mc_eid', '_ga'))
+        }
+        
+        # Rebuild query string
+        new_query = urlencode(filtered_params, doseq=True)
+        
+        # Remove trailing slash from path
+        new_path = parsed.path.rstrip('/')
+        
+        # Reconstruct URL
+        normalized = urlunparse((
+            parsed.scheme,
+            parsed.netloc,
+            new_path,
+            parsed.params,
+            new_query,
+            parsed.fragment
+        ))
+        
+        return normalized

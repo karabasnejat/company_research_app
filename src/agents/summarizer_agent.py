@@ -2,6 +2,7 @@ from langchain_openai import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate
 from typing import List
 import json
+from urllib.parse import urlparse
 
 from ..models.schemas import ResearchResult
 from ..config import Config
@@ -18,36 +19,46 @@ class SummarizerAgent:
         )
         
         self.summary_prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are an expert business analyst tasked with creating comprehensive company research summaries.
+            ("system", """Sen Türkiye'deki şirketleri araştıran uzman bir business analistsin. 
 
-Your task is to analyze research data about a company and its partners/founders, then create a well-structured summary.
+Görevin, bir şirket ve ortakları/kurucuları hakkındaki araştırma verilerini analiz ederek kapsamlı bir özet oluşturmak.
 
-Guidelines:
-1. Focus on factual information from the research data
-2. Organize information clearly with proper sections
-3. Highlight key business information, financial data, and recent developments
-4. Include relevant information about partners/founders
-5. Be concise but comprehensive
-6. If information is limited, clearly state what was found vs. what's missing
-7. Use professional business language
+Kullanacağın Türkiye'ye özel kaynaklar:
+- KAP (Kamuyu Aydınlatma Platformu) - finansal ve kurumsal bilgiler
+- Ticaret Sicil Gazetesi - yasal değişiklikler, sermaye yapısı
+- Resmi Gazete - resmi açıklamalar
+- ilan.gov.tr - ihale ve ilan bilgileri  
+- LinkedIn - profesyonel profiller
+- Yerel basın - güncel haberler
 
-Structure your summary with these sections:
-- Company Overview
-- Business Information
-- Financial Information (if available)
-- Key Personnel/Partners
-- Recent Developments
-- Summary Assessment"""),
+Yönergeler:
+1. Araştırma verilerindeki gerçek bilgilere odaklan
+2. Bilgileri net bölümlerle düzenle
+3. Finansal veri, son gelişmeler ve kurumsal bilgileri öne çıkar
+4. Ortaklar/kurucular hakkında ilgili bilgileri dahil et
+5. Özlü ama kapsamlı ol
+6. Bilgi sınırlıysa, bulunanları vs. eksik olanları açıkça belirt
+7. Profesyonel iş dili kullan
+8. Risk faktörleri varsa belirt
+
+Özetini şu bölümlerle yapılandır:
+- Şirket Genel Bilgileri
+- Faaliyet Alanı ve İş Modeli  
+- Finansal Durum (varsa)
+- Kilit Personel/Ortaklar
+- Son Gelişmeler ve Haberler
+- Risk Analizi (varsa)
+- Genel Değerlendirme"""),
             
-            ("human", """Please analyze the following research data and create a comprehensive summary:
+            ("human", """Lütfen aşağıdaki araştırma verilerini analiz ederek kapsamlı bir özet oluştur:
 
-Company Name: {company_name}
-Partners/Founders: {partners}
+Şirket Adı: {company_name}
+Ortaklar/Kurucular: {partners}
 
-Research Data:
+Araştırma Verileri:
 {research_data}
 
-Create a detailed but concise summary of the findings.""")
+Detaylı ama özlü bir bulgular özeti oluştur.""")
         ])
     
     async def summarize(self, company_name: str, partners: List[str], research_results: List[ResearchResult]) -> str:
@@ -106,23 +117,52 @@ Create a detailed but concise summary of the findings.""")
         total_results = sum(len(result.results) for result in research_results)
         successful_queries = len([r for r in research_results if r.results])
         
-        summary = f"""# Research Summary for {company_name}
+        # Count sources by domain
+        source_counts = {}
+        for result in research_results:
+            for search_result in result.results:
+                # Safe URL parsing with normalization
+                url = search_result.url
+                # Prepend scheme if missing
+                if not url.startswith(('http://', 'https://')):
+                    url = 'http://' + url
+                
+                parsed = urlparse(url)
+                domain = parsed.netloc.lower()
+                
+                # Strip leading "www." if present
+                if domain.startswith('www.'):
+                    domain = domain[4:]
+                
+                # Fall back to "unknown" if empty
+                domain = domain if domain else 'unknown'
+                
+                source_counts[domain] = source_counts.get(domain, 0) + 1
+        
+        summary = f"""# {company_name} - Araştırma Özeti
 
-## Company Overview
-Company Name: {company_name}
-Partners/Founders: {", ".join(partners)}
+## Şirket Genel Bilgileri
+Şirket Adı: {company_name}
+Ortaklar/Kurucular: {", ".join(partners)}
 
-## Research Results
-- Total search queries executed: {len(research_results)}
-- Successful queries: {successful_queries}
-- Total results found: {total_results}
+## Araştırma Sonuçları
+- Toplam arama sorgusu: {len(research_results)}
+- Başarılı sorgular: {successful_queries}
+- Toplam bulunan sonuç: {total_results}
 
-## Key Findings
-Research data has been collected but automatic summarization was not available. 
-Please review the raw research data for detailed information.
+## Kaynak Dağılımı"""
+        
+        for domain, count in sorted(source_counts.items(), key=lambda x: x[1], reverse=True)[:10]:
+            summary += f"\n- {domain}: {count} sonuç"
+        
+        summary += f"""
 
-## Data Quality
-{"Good data coverage" if total_results > 10 else "Limited data available"} - 
-{total_results} total search results across {successful_queries} successful queries.
+## Veri Kalitesi
+{"İyi veri kapsamı" if total_results > 15 else "Sınırlı veri mevcut"} - 
+{total_results} toplam sonuç, {successful_queries} başarılı sorgu ile elde edildi.
+
+## Not
+Araştırma verileri toplanmış ancak otomatik özetleme kullanılamadı.
+Detaylı bilgi için ham araştırma verilerini inceleyiniz.
 """
         return summary

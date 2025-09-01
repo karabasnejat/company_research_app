@@ -50,22 +50,22 @@ async def health_check():
 @app.post("/research", response_model=CompanyResearchResponse)
 async def research_company(request: CompanyResearchRequest):
     """
-    Research a company and its partners/founders
+    Bir şirket ve ortaklarını/kurucularını araştır
     
     Args:
-        request: CompanyResearchRequest containing company name and partners
+        request: Şirket adı ve ortakları içeren CompanyResearchRequest
         
     Returns:
-        CompanyResearchResponse with summary and raw research data
+        Özet ve ham araştırma verileri içeren CompanyResearchResponse
     """
     start_time = time.time()
     
     try:
-        print(f"Starting research for company: {request.company_name}")
-        print(f"Partners: {request.partners}")
+        print(f"🏢 Araştırma başlatılıyor: {request.company_name}")
+        print(f"👥 Ortaklar: {request.partners}")
         
-        # Step 1: Research using Tavily
-        print("Step 1: Performing research with Tavily...")
+        # Adım 1: Tavily ile araştırma
+        print("🔍 1. Adım: Tavily ile veri toplama...")
         research_results = await researcher_agent.research(
             company_name=request.company_name,
             partners=request.partners
@@ -74,11 +74,11 @@ async def research_company(request: CompanyResearchRequest):
         if not research_results:
             raise HTTPException(
                 status_code=500,
-                detail="No research results were obtained. Please check your API keys and try again."
+                detail="Araştırma sonucu alınamadı. Lütfen API anahtarlarınızı kontrol edin ve tekrar deneyin."
             )
         
-        # Step 2: Summarize using GPT-4o
-        print("Step 2: Generating summary with GPT-4o...")
+        # Adım 2: GPT-4o ile özetleme
+        print("🤖 2. Adım: GPT-4o ile özet oluşturuluyor...")
         summary = await summarizer_agent.summarize(
             company_name=request.company_name,
             partners=request.partners,
@@ -86,7 +86,7 @@ async def research_company(request: CompanyResearchRequest):
         )
         
         processing_time = time.time() - start_time
-        print(f"Research completed in {processing_time:.2f} seconds")
+        print(f"✅ Araştırma {processing_time:.2f} saniyede tamamlandı")
         
         return CompanyResearchResponse(
             company_name=request.company_name,
@@ -96,11 +96,14 @@ async def research_company(request: CompanyResearchRequest):
             processing_time_seconds=round(processing_time, 2)
         )
         
+    except HTTPException:
+        # Re-raise HTTPException unchanged to preserve original status and detail
+        raise
     except Exception as e:
-        print(f"Error during research: {e}")
+        print(f"❌ Araştırma sırasında hata: {e}")
         raise HTTPException(
             status_code=500,
-            detail=f"An error occurred during research: {str(e)}"
+            detail=f"Araştırma sırasında bir hata oluştu: {str(e)}"
         )
 
 
