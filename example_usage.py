@@ -12,17 +12,14 @@ async def test_research():
     
     # Example request data
     request_data = CompanyResearchRequest(
-        company_name="Midas Hediyelik Eşya San. ve Tic. Anonim Şti.",
+        company_name="Banat Fırça ve Plastik San. Anonim Şti",
         partners=[
-            "Can Özkök", 
-            "Münir Özkök", 
-            "İlyas Özkök", 
-            "Bülent Özkök", 
+            "Abdullah Hakan Özkök", 
             "Gökhan Özkök", 
-            "Helen Özkök", 
-            "Berlin Özkök", 
-            "Şemen Özkök Erbağan"
-        ]
+            "Şemen Özkök Erbağan", 
+            "Helen Özkök"
+        ],
+        include_esg_analysis=True  # ESG analizi dahil et
     )
     
     print("Testing Company Research API...")
@@ -39,6 +36,34 @@ async def test_research():
         
         print(f"\nResearch completed in {result.processing_time_seconds} seconds")
         print(f"\nSummary:\n{result.research_summary}")
+        
+        # ESG Analizi sonuçlarını yazdır
+        if result.esg_analysis:
+            print(f"\n{'='*50}")
+            print("ESG ANALİZİ SONUÇLARI")
+            print(f"{'='*50}")
+            
+            print(f"\n🏭 TESİS KONUMLARI:")
+            print(result.esg_analysis.facility_locations)
+            
+            print(f"\n📊 SÜRDÜRÜLEBİLİRLİK RAPORLAMASI:")
+            print(result.esg_analysis.sustainability_reporting)
+            
+            print(f"\n📋 ESG POLİTİKALARI:")
+            print(result.esg_analysis.esg_policies)
+            
+            print(f"\n🌱 ÇEVRE YÖNETİM SİSTEMİ:")
+            print(result.esg_analysis.environmental_management)
+            
+            print(f"\n⚖️ HUKUKİ SORUNLAR:")
+            print(result.esg_analysis.legal_issues)
+            
+            print(f"\n🏛️ YÖNETİŞİM SORUNLARI:")
+            print(result.esg_analysis.governance_issues)
+            
+            print(f"\n🌍 İKLİM AKSIYON PLANLARI:")
+            print(result.esg_analysis.climate_action)
+        
         print(f"\nFound {len(result.raw_research_data)} research result sets")
         
         # Save results to file

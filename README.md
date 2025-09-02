@@ -1,16 +1,26 @@
-# Company Research API
+# Company Research API with ESG Analysis
 
-A REST service built with FastAPI, LangChain, and Tavily for researching companies and their partners/founders.
+A REST service built with FastAPI, LangChain, and Tavily for researching companies and their partners/founders with comprehensive ESG analysis.
 
 ## Features
 
 - **FastAPI** REST API with automatic documentation
 - **Tavily** for web search and data gathering
 - **LangChain** agents for research and summarization
-- **GPT-4o** for intelligent summarization
-- Two-agent architecture:
-  - **Researcher Agent**: Performs searches via Tavily
+- **GPT-4o** for intelligent summarization and ESG analysis
+- **ESG Analysis** covering 7 key areas:
+  1. Facility locations and coordinates
+  2. Sustainability reporting (CDP, TCFD, TSRS)
+  3. ESG policies and standards
+  4. Environmental management systems (ISO 14001, ISO 45001)
+  5. Legal issues and environmental lawsuits
+  6. Governance issues (tax, corruption, human rights)
+  7. Climate action plans and commitments
+
+- Three-agent architecture:
+  - **Researcher Agent**: Performs searches via Tavily (general + ESG-specific)
   - **Summarizer Agent**: Processes and summarizes the retrieved data
+  - **ESG Agent**: Analyzes ESG-related data and risks
 
 ## Installation
 
@@ -44,12 +54,14 @@ A REST service built with FastAPI, LangChain, and Tavily for researching compani
 3. Make a POST request to `/research` with the following format:
    ```json
    {
-     "company_name": "Midas Hediyelik Eşya San. ve Tic. Anonim Şti.",
+     "company_name": "Banat Fırça ve Plastik San. Anonim Şti",
      "partners": [
-       "Can Özkök", 
-       "Münir Özkök", 
-       "İlyas Özkök"
-     ]
+       "Abdullah Hakan Özkök", 
+       "Gökhan Özkök", 
+       "Şemen Özkök Erbağan",
+       "Helen Özkök"
+     ],
+     "include_esg_analysis": true
    }
    ```
 

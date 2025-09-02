@@ -7,6 +7,7 @@ from .config import Config
 from .models.schemas import CompanyResearchRequest, CompanyResearchResponse
 from .agents.researcher_agent import ResearcherAgent
 from .agents.summarizer_agent import SummarizerAgent
+from .agents.esg_agent import ESGAgent
 
 # Validate configuration on startup
 try:
@@ -35,6 +36,7 @@ app.add_middleware(
 # Initialize agents
 researcher_agent = ResearcherAgent()
 summarizer_agent = SummarizerAgent()
+esg_agent = ESGAgent()
 
 
 @app.get("/")
@@ -50,25 +52,27 @@ async def health_check():
 @app.post("/research", response_model=CompanyResearchResponse)
 async def research_company(request: CompanyResearchRequest):
     """
-    Research a company and its partners/founders
+    Research a company and its partners/founders with optional ESG analysis
     
     Args:
-        request: CompanyResearchRequest containing company name and partners
+        request: CompanyResearchRequest containing company name, partners, and ESG flag
         
     Returns:
-        CompanyResearchResponse with summary and raw research data
+        CompanyResearchResponse with summary, ESG analysis, and raw research data
     """
     start_time = time.time()
     
     try:
         print(f"Starting research for company: {request.company_name}")
         print(f"Partners: {request.partners}")
+        print(f"ESG Analysis: {request.include_esg_analysis}")
         
         # Step 1: Research using Tavily
         print("Step 1: Performing research with Tavily...")
         research_results = await researcher_agent.research(
             company_name=request.company_name,
-            partners=request.partners
+            partners=request.partners,
+            include_esg=request.include_esg_analysis
         )
         
         if not research_results:
@@ -85,6 +89,16 @@ async def research_company(request: CompanyResearchRequest):
             research_results=research_results
         )
         
+        # Step 3: ESG Analysis (if requested)
+        esg_analysis = None
+        if request.include_esg_analysis:
+            print("Step 3: Performing ESG analysis...")
+            esg_analysis = await esg_agent.analyze_esg(
+                company_name=request.company_name,
+                partners=request.partners,
+                research_results=research_results
+            )
+        
         processing_time = time.time() - start_time
         print(f"Research completed in {processing_time:.2f} seconds")
         
@@ -92,6 +106,7 @@ async def research_company(request: CompanyResearchRequest):
             company_name=request.company_name,
             partners=request.partners,
             research_summary=summary,
+            esg_analysis=esg_analysis,
             raw_research_data=research_results,
             processing_time_seconds=round(processing_time, 2)
         )

@@ -22,6 +22,8 @@ class SummarizerAgent:
 
 Your task is to analyze research data about a company and its partners/founders, then create a well-structured summary.
 
+IMPORTANT: Always respond in Turkish language. The entire summary must be written in Turkish.
+
 Guidelines:
 1. Focus on factual information from the research data
 2. Organize information clearly with proper sections
@@ -29,17 +31,17 @@ Guidelines:
 4. Include relevant information about partners/founders
 5. Be concise but comprehensive
 6. If information is limited, clearly state what was found vs. what's missing
-7. Use professional business language
+7. Use professional business language in Turkish
 
-Structure your summary with these sections:
-- Company Overview
-- Business Information
-- Financial Information (if available)
-- Key Personnel/Partners
-- Recent Developments
-- Summary Assessment"""),
+Structure your summary with these sections (in Turkish):
+- Şirket Genel Bakış (Company Overview)
+- İş Bilgileri (Business Information)
+- Finansal Bilgiler (Financial Information - if available)
+- Kilit Personel/Ortaklar (Key Personnel/Partners)
+- Son Gelişmeler (Recent Developments)
+- Genel Değerlendirme (Summary Assessment)"""),
             
-            ("human", """Please analyze the following research data and create a comprehensive summary:
+            ("human", """Please analyze the following research data and create a comprehensive summary in Turkish language:
 
 Company Name: {company_name}
 Partners/Founders: {partners}
@@ -47,7 +49,7 @@ Partners/Founders: {partners}
 Research Data:
 {research_data}
 
-Create a detailed but concise summary of the findings.""")
+Create a detailed but concise summary of the findings. Remember to write the entire response in Turkish.""")
         ])
     
     async def summarize(self, company_name: str, partners: List[str], research_results: List[ResearchResult]) -> str:
@@ -106,23 +108,23 @@ Create a detailed but concise summary of the findings.""")
         total_results = sum(len(result.results) for result in research_results)
         successful_queries = len([r for r in research_results if r.results])
         
-        summary = f"""# Research Summary for {company_name}
+        summary = f"""# {company_name} için Araştırma Özeti
 
-## Company Overview
-Company Name: {company_name}
-Partners/Founders: {", ".join(partners)}
+## Şirket Genel Bakış
+Şirket Adı: {company_name}
+Ortaklar/Kurucular: {", ".join(partners)}
 
-## Research Results
-- Total search queries executed: {len(research_results)}
-- Successful queries: {successful_queries}
-- Total results found: {total_results}
+## Araştırma Sonuçları
+- Toplam gerçekleştirilen arama sorgusu: {len(research_results)}
+- Başarılı sorgular: {successful_queries}
+- Toplam bulunan sonuç: {total_results}
 
-## Key Findings
-Research data has been collected but automatic summarization was not available. 
-Please review the raw research data for detailed information.
+## Ana Bulgular
+Araştırma verileri toplandı ancak otomatik özetleme mevcut değildi. 
+Detaylı bilgi için lütfen ham araştırma verilerini inceleyin.
 
-## Data Quality
-{"Good data coverage" if total_results > 10 else "Limited data available"} - 
-{total_results} total search results across {successful_queries} successful queries.
+## Veri Kalitesi
+{"İyi veri kapsamı" if total_results > 10 else "Sınırlı veri mevcut"} - 
+{successful_queries} başarılı sorguda toplam {total_results} arama sonucu.
 """
         return summary
