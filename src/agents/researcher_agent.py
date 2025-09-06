@@ -21,125 +21,161 @@ class ResearcherAgent:
             temperature=0.1
         )
     
-    def _create_search_queries(self, company_name: str, partners: List[str]) -> List[str]:
-        """Türkçe şirket araştırması için optimize edilmiş sorgular oluştur"""
+    def _create_search_queries(self, company_name: str, company_url: str = None, keywords: List[str] = None, partners: List[str] = None) -> List[str]:
+        """Create optimized English search queries for company research"""
         queries = []
+        keywords = keywords or []
+        partners = partners or []
         
-        # 1. TEMEL ŞİRKET BİLGİLERİ (Türkçe odaklı)
-        queries.append(f'"{company_name}" şirket profili hakkında bilgi')
-        queries.append(f'"{company_name}" anonim şirketi genel bilgiler')
-        queries.append(f'"{company_name}" kuruluş tarihi sermaye')
-        queries.append(f'"{company_name}" faaliyet alanı sektör')
-        queries.append(f'"{company_name}" merkez adresi fabrika tesis')
+        # 1. BASIC COMPANY INFORMATION (English queries)
+        queries.append(f'"{company_name}" company profile information')
+        queries.append(f'"{company_name}" corporation general information')
+        queries.append(f'"{company_name}" founding date capital')
+        queries.append(f'"{company_name}" business sector industry')
+        queries.append(f'"{company_name}" headquarters address facility location')
         
-        # 2. FİNANSAL VE YASAL BİLGİLER
-        queries.append(f'"{company_name}" mali tablo bilanço kar zarar')
-        queries.append(f'"{company_name}" KAP bildirimleri finansal durum')
-        queries.append(f'"{company_name}" ciro karlılık performans')
-        queries.append(f'"{company_name}" borsa kotasyon hisse senedi')
-        queries.append(f'"{company_name}" ticaret sicil gazetesi')
+        # Add URL-based queries if company URL is provided
+        if company_url:
+            domain = company_url.replace('http://', '').replace('https://', '').replace('www.', '').split('/')[0]
+            queries.append(f'site:{domain} about company')
+            queries.append(f'site:{domain} management team')
+            queries.append(f'site:{domain} financial information')
         
-        # 3. YÖNETİM KADROSU VE ORTAKLAR (her ortak için detaylı)
+        # Add keyword-based queries
+        for keyword in keywords:
+            queries.append(f'"{company_name}" {keyword}')
+            queries.append(f'"{company_name}" {keyword} industry sector')
+        
+        # 2. FINANCIAL AND LEGAL INFORMATION
+        queries.append(f'"{company_name}" financial statements balance sheet')
+        queries.append(f'"{company_name}" financial disclosure reports')
+        queries.append(f'"{company_name}" revenue profitability performance')
+        queries.append(f'"{company_name}" stock exchange listing shares')
+        queries.append(f'"{company_name}" trade registry gazette')
+        
+        # 3. MANAGEMENT AND PARTNERS (detailed for each partner)
         for partner in partners:
-            queries.append(f'"{partner}" "{company_name}" yönetim kurulu')
-            queries.append(f'"{partner}" işadamı profil biyografi')
-            queries.append(f'"{partner}" genel müdür CEO başkan')
-            queries.append(f'"{partner}" LinkedIn profil deneyim')
-            queries.append(f'"{partner}" haber röportaj basın')
+            queries.append(f'"{partner}" "{company_name}" board of directors')
+            queries.append(f'"{partner}" businessman profile biography')
+            queries.append(f'"{partner}" CEO executive president')
+            queries.append(f'"{partner}" LinkedIn profile experience')
+            queries.append(f'"{partner}" news interview press')
         
-        # 4. ŞİRKET HABERLERİ VE GELİŞMELER
-        queries.append(f'"{company_name}" son haberler 2024 2025')
-        queries.append(f'"{company_name}" yatırım proje genişleme')
-        queries.append(f'"{company_name}" ihracat pazar büyüme')
-        queries.append(f'"{company_name}" teknoloji inovasyon AR-GE')
+        # 4. COMPANY NEWS AND DEVELOPMENTS
+        queries.append(f'"{company_name}" latest news 2024 2025')
+        queries.append(f'"{company_name}" investment project expansion')
+        queries.append(f'"{company_name}" export market growth')
+        queries.append(f'"{company_name}" technology innovation R&D')
         
-        # 5. SEKTÖREL ARAŞTIRMA
-        queries.append(f'"{company_name}" rakip analiz pazar payı')
-        queries.append(f'"{company_name}" sektör lideri konumu')
-        queries.append(f'"{company_name}" müşteri referans proje')
+        # 5. SECTOR RESEARCH
+        queries.append(f'"{company_name}" competitor analysis market share')
+        queries.append(f'"{company_name}" industry leader position')
+        queries.append(f'"{company_name}" customer reference project')
         
-        # 6. KOMBİNE ARAMALAR (ortak + şirket)
+        # 6. COMBINED SEARCHES (partner + company)
         if len(partners) > 0:
             main_partners = " ".join([f'"{partner}"' for partner in partners[:3]])
-            queries.append(f'"{company_name}" {main_partners} yönetim')
-            queries.append(f'{main_partners} işbirliği ortaklık')
+            queries.append(f'"{company_name}" {main_partners} management')
+            queries.append(f'{main_partners} partnership collaboration')
         
         return queries
     
-    def _create_esg_search_queries(self, company_name: str, partners: List[str]) -> List[str]:
-        """ESG analizi için Türkçe optimize edilmiş arama sorguları"""
+    def _create_esg_search_queries(self, company_name: str, company_url: str = None, keywords: List[str] = None, partners: List[str] = None) -> List[str]:
+        """Create English optimized search queries for ESG analysis"""
         esg_queries = []
+        keywords = keywords or []
+        partners = partners or []
         
-        # 1. TESİS KONUMLARI VE OPERASYONLAR
-        esg_queries.append(f'"{company_name}" fabrika tesis konum adres il ilçe')
-        esg_queries.append(f'"{company_name}" üretim merkezi lokasyon')
-        esg_queries.append(f'"{company_name}" şube ofis dağıtım merkezi')
+        # 1. FACILITY LOCATIONS AND OPERATIONS
+        esg_queries.append(f'"{company_name}" factory facility location address')
+        esg_queries.append(f'"{company_name}" production center locations')
+        esg_queries.append(f'"{company_name}" branch office distribution center')
         
-        # 2. SÜRDÜRÜLEBİLİRLİK RAPORLAMASI
-        esg_queries.append(f'"{company_name}" sürdürülebilirlik raporu CDP')
-        esg_queries.append(f'"{company_name}" entegre faaliyet raporu ESG')
-        esg_queries.append(f'"{company_name}" çevre performans karbon ayak izi')
-        esg_queries.append(f'"{company_name}" TCFD SASB GRI raporlama')
+        # Add URL-based ESG queries if company URL is provided
+        if company_url:
+            domain = company_url.replace('http://', '').replace('https://', '').replace('www.', '').split('/')[0]
+            esg_queries.append(f'site:{domain} sustainability report')
+            esg_queries.append(f'site:{domain} environmental policy')
+            esg_queries.append(f'site:{domain} ESG disclosure')
         
-        # 3. ESG POLİTİKALARI VE SERTİFİKALAR
-        esg_queries.append(f'"{company_name}" ESG politika çevre sosyal')
-        esg_queries.append(f'"{company_name}" ISO 14001 ISO 45001 sertifika')
-        esg_queries.append(f'"{company_name}" kalite çevre yönetim sistemi')
-        esg_queries.append(f'"{company_name}" sürdürülebilirlik taahhüt')
+        # Add keyword-based ESG queries
+        for keyword in keywords:
+            if any(term in keyword.lower() for term in ['environment', 'sustainability', 'green', 'carbon', 'climate']):
+                esg_queries.append(f'"{company_name}" {keyword} environmental')
+                esg_queries.append(f'"{company_name}" {keyword} sustainability')
         
-        # 4. ÇEVRESEL PERFORMANS VE RİSKLER
-        esg_queries.append(f'"{company_name}" çevre etkisi değerlendirme ÇED')
-        esg_queries.append(f'"{company_name}" atık yönetimi geri dönüşüm')
-        esg_queries.append(f'"{company_name}" enerji verimlilik yenilenebilir')
-        esg_queries.append(f'"{company_name}" su yönetimi kirlilik')
+        # 2. SUSTAINABILITY REPORTING
+        esg_queries.append(f'"{company_name}" sustainability report CDP')
+        esg_queries.append(f'"{company_name}" integrated annual report ESG')
+        esg_queries.append(f'"{company_name}" environmental performance carbon footprint')
+        esg_queries.append(f'"{company_name}" TCFD SASB GRI reporting')
         
-        # 5. HUKUKİ SORUNLAR VE CEZALAR
-        esg_queries.append(f'"{company_name}" çevre dava ceza ihlal')
-        esg_queries.append(f'"{company_name}" idari para cezası ÇED')
-        esg_queries.append(f'"{company_name}" iş kazası çalışan güvenlik')
-        esg_queries.append(f'"{company_name}" işçi hakları sendika')
+        # 3. ESG POLICIES AND CERTIFICATIONS
+        esg_queries.append(f'"{company_name}" ESG policy environmental social')
+        esg_queries.append(f'"{company_name}" ISO 14001 ISO 45001 certification')
+        esg_queries.append(f'"{company_name}" quality environmental management system')
+        esg_queries.append(f'"{company_name}" sustainability commitment')
         
-        # 6. YÖNETİŞİM VE ETİK SORUNLAR (Ortaklar için)
-        for partner in partners[:3]:  # İlk 3 ortak
-            esg_queries.append(f'"{partner}" vergi dava mahkeme')
-            esg_queries.append(f'"{partner}" rüşvet yolsuzluk adalet')
-            esg_queries.append(f'"{partner}" rekabet kurulu soruşturma')
-            esg_queries.append(f'"{partner}" insan hakları etik')
+        # 4. ENVIRONMENTAL PERFORMANCE AND RISKS
+        esg_queries.append(f'"{company_name}" environmental impact assessment EIA')
+        esg_queries.append(f'"{company_name}" waste management recycling')
+        esg_queries.append(f'"{company_name}" energy efficiency renewable')
+        esg_queries.append(f'"{company_name}" water management pollution')
         
-        # 7. İKLİM DEĞİŞİKLİĞİ VE KARBON YÖNETİMİ
-        esg_queries.append(f'"{company_name}" iklim değişikliği strateji')
-        esg_queries.append(f'"{company_name}" karbon emisyon azaltım hedef')
-        esg_queries.append(f'"{company_name}" net sıfır karbon nötr')
-        esg_queries.append(f'"{company_name}" yeşil teknoloji temiz enerji')
+        # 5. LEGAL ISSUES AND PENALTIES
+        esg_queries.append(f'"{company_name}" environmental lawsuit penalty violation')
+        esg_queries.append(f'"{company_name}" administrative fine EIA')
+        esg_queries.append(f'"{company_name}" workplace accident employee safety')
+        esg_queries.append(f'"{company_name}" worker rights union')
         
-        # 8. SOSYAL PERFORMANS
-        esg_queries.append(f'"{company_name}" toplumsal sorumluluk projesi')
-        esg_queries.append(f'"{company_name}" çalışan hakları çeşitlilik')
-        esg_queries.append(f'"{company_name}" yerel toplum katkı')
+        # 6. GOVERNANCE AND ETHICS ISSUES (For Partners)
+        for partner in partners[:3]:  # First 3 partners
+            esg_queries.append(f'"{partner}" tax lawsuit court')
+            esg_queries.append(f'"{partner}" bribery corruption justice')
+            esg_queries.append(f'"{partner}" competition authority investigation')
+            esg_queries.append(f'"{partner}" human rights ethics')
+        
+        # 7. CLIMATE CHANGE AND CARBON MANAGEMENT
+        esg_queries.append(f'"{company_name}" climate change strategy')
+        esg_queries.append(f'"{company_name}" carbon emission reduction target')
+        esg_queries.append(f'"{company_name}" net zero carbon neutral')
+        esg_queries.append(f'"{company_name}" green technology clean energy')
+        
+        # 8. SOCIAL PERFORMANCE
+        esg_queries.append(f'"{company_name}" corporate social responsibility project')
+        esg_queries.append(f'"{company_name}" employee rights diversity')
+        esg_queries.append(f'"{company_name}" local community contribution')
         
         return esg_queries
     
-    async def research(self, company_name: str, partners: List[str], include_esg: bool = True) -> List[ResearchResult]:
+    async def research(self, company_name: str, company_url: str = None, keywords: List[str] = None, partners: List[str] = None, include_esg: bool = True) -> List[ResearchResult]:
         """
-        Research the company and its partners using focused Turkish sources
+        Research the company and its partners using focused sources with English queries
         
         Args:
             company_name: Name of the company to research
-            partners: List of partner/founder names
+            company_url: Company website URL (optional)
+            keywords: Keywords about the company (optional)
+            partners: List of partner/founder names (optional)
             include_esg: Include ESG-specific research
             
         Returns:
             List of ResearchResult objects containing search results
         """
-        # Generate search queries
-        queries = self._create_search_queries(company_name, partners)
+        partners = partners or []
+        keywords = keywords or []
         
-        # ESG sorguları ekle
+        # Generate search queries
+        queries = self._create_search_queries(company_name, company_url, keywords, partners)
+        
+        # Add ESG queries
         if include_esg:
-            esg_queries = self._create_esg_search_queries(company_name, partners)
+            esg_queries = self._create_esg_search_queries(company_name, company_url, keywords, partners)
             queries.extend(esg_queries)
         
         print(f"Generated {len(queries)} search queries for research (ESG: {include_esg})")
+        print(f"Company URL: {company_url if company_url else 'Not provided'}")
+        print(f"Keywords: {', '.join(keywords) if keywords else 'None'}")
         
         # Define focused domains for Turkish company research
         include_domains = [

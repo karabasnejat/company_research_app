@@ -39,33 +39,43 @@ Her kategori için:
 - Bilgi eksikse bunu belirt
 - Risk seviyesini değerlendir (Düşük/Orta/Yüksek)"""),
             
-            ("human", """Şirket: {company_name}
-Ortaklar: {partners}
+            ("human", """Company: {company_name}
+Company URL: {company_url}
+Keywords: {keywords}
+Partners: {partners}
 
-Araştırma Verileri:
+Research Data:
 {research_data}
 
-Bu verileri analiz ederek yukarıdaki 7 kategori için ESG analizi yap. Her kategori için detaylı bulgular ver.""")
+Analyze this data for the 7 categories above and provide detailed ESG analysis findings for each category.""")
         ])
     
-    async def analyze_esg(self, company_name: str, partners: List[str], research_results: List[ResearchResult]) -> ESGAnalysisResult:
+    async def analyze_esg(self, company_name: str, company_url: str = None, keywords: List[str] = None, partners: List[str] = None, research_results: List[ResearchResult] = None) -> ESGAnalysisResult:
         """
         ESG analizi yap
         
         Args:
             company_name: Şirket adı
-            partners: Ortak listesi
+            company_url: Şirket web sitesi (isteğe bağlı)
+            keywords: Anahtar kelimeler (isteğe bağlı)
+            partners: Ortak listesi (isteğe bağlı)
             research_results: Araştırma sonuçları
             
         Returns:
             ESGAnalysisResult
         """
+        partners = partners or []
+        keywords = keywords or []
+        research_results = research_results or []
+        
         # Araştırma verilerini formatlayalım
         research_data = self._format_research_data(research_results)
         
         # ESG prompt'unu oluştur
         formatted_prompt = self.esg_prompt.format_messages(
             company_name=company_name,
+            company_url=company_url if company_url else "Not provided",
+            keywords=", ".join(keywords) if keywords else "None",
             partners=", ".join(partners),
             research_data=research_data
         )

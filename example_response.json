@@ -1,0 +1,46 @@
+{
+  "company_name": "Banat Fırça ve Plastik San. Anonim Şti",
+  "company_url": "https://www.banat.com.tr",
+  "keywords": ["plastic manufacturing", "brush production", "industrial materials"],
+  "partners": ["Abdullah Hakan Özkök", "Gökhan Özkök"],
+  "research_summary": "# Banat Fırça ve Plastik San. A.Ş. için Araştırma Özeti\n\n## Şirket Genel Bakış\nBanat Fırça ve Plastik San. Anonim Şirketi, 1947 yılında kurulmuş ve Türkiye'nin ilk diş fırçası üreticisi olarak tanınmaktadır[1]. Şirket, ağız bakım ürünleri, ev bakım ürünleri, kişisel bakım ürünleri ve endüstriyel ürünler alanında faaliyet göstermektedir[2]...",
+  "facility_summary": "# Tesis Konumları Özeti\n\n## Fabrika ve Üretim Tesisleri\n1. Arnavutköy, İstanbul\n2. Adres: Deliklikaya Mah. Çubuklu Cad. No:7 İç Kapı No:3 Arnavutköy, İstanbul[1]\n3. Yaklaşık 14 bin metrekare kapalı alan[2]...",
+  "sustainability_summary": "# Sürdürülebilirlik Raporlaması Özeti\n\n## Mevcut Raporlar\nŞirketin doğrudan bir sürdürülebilirlik raporu bulunmamaktadır[1]. Ancak sürdürülebilirlik yaklaşımları açıklanmıştır[2]...",
+  "esg_analysis": {
+    "facility_locations": "Arnavutköy İstanbul fabrikası tespit edilmiştir[1]",
+    "sustainability_reporting": "Sürdürülebilirlik raporu mevcut değildir[1]",
+    "esg_policies": "ESG politika bilgisi sınırlıdır[1]",
+    "environmental_management": "ISO sertifika bilgisi bulunamadı[1]",
+    "legal_issues": "Hukuki sorun bilgisi bulunamadı[1]",
+    "governance_issues": "Yönetişim sorunu bilgisi bulunamadı[1]",
+    "climate_action": "İklim aksiyonu bilgisi sınırlıdır[1]"
+  },
+  "citations": [
+    {
+      "id": "1",
+      "title": "Banat ile parla... - Official Website",
+      "url": "https://www.banat.com/",
+      "content_preview": "Banat Fırça ve Plastik San. A.Ş., 1947 yılında kurulmuş Türkiye'nin ilk diş fırçası üreticisidir..."
+    },
+    {
+      "id": "2", 
+      "title": "BANAT Fırça ve Plastik San. A.Ş Tüm Ürünleri",
+      "url": "https://sercons.com.tr/banat-firca-ve-plastik-san-a-s",
+      "content_preview": "Şirket ağız bakım ürünleri, ev bakım ürünleri, kişisel bakım ürünleri ve endüstriyel ürünler alanında faaliyet göstermektedir..."
+    }
+  ],
+  "raw_research_data": [
+    {
+      "query": "Banat Fırça ve Plastik company profile information",
+      "results": [
+        {
+          "title": "Banat ile parla...",
+          "url": "https://www.banat.com/",
+          "content": "Banat company information and product details...",
+          "relevance_score": 0.95
+        }
+      ]
+    }
+  ],
+  "processing_time_seconds": 45.67
+}

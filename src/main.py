@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import PlainTextResponse
 import time
 import asyncio
 
@@ -8,6 +9,7 @@ from .models.schemas import CompanyResearchRequest, CompanyResearchResponse
 from .agents.researcher_agent import ResearcherAgent
 from .agents.summarizer_agent import SummarizerAgent
 from .agents.esg_agent import ESGAgent
+from .utils.formatting import format_response_as_markdown
 
 # Validate configuration on startup
 try:
@@ -64,6 +66,8 @@ async def research_company(request: CompanyResearchRequest):
     
     try:
         print(f"Starting research for company: {request.company_name}")
+        print(f"Company URL: {request.company_url}")
+        print(f"Keywords: {request.keywords}")
         print(f"Partners: {request.partners}")
         print(f"ESG Analysis: {request.include_esg_analysis}")
         
@@ -71,6 +75,8 @@ async def research_company(request: CompanyResearchRequest):
         print("Step 1: Performing research with Tavily...")
         research_results = await researcher_agent.research(
             company_name=request.company_name,
+            company_url=request.company_url,
+            keywords=request.keywords,
             partners=request.partners,
             include_esg=request.include_esg_analysis
         )
@@ -83,8 +89,10 @@ async def research_company(request: CompanyResearchRequest):
         
         # Step 2: Summarize using GPT-4o
         print("Step 2: Generating summary with GPT-4o...")
-        summary = await summarizer_agent.summarize(
+        research_summary, facility_summary, sustainability_summary, citations = await summarizer_agent.summarize(
             company_name=request.company_name,
+            company_url=request.company_url,
+            keywords=request.keywords,
             partners=request.partners,
             research_results=research_results
         )
@@ -95,6 +103,8 @@ async def research_company(request: CompanyResearchRequest):
             print("Step 3: Performing ESG analysis...")
             esg_analysis = await esg_agent.analyze_esg(
                 company_name=request.company_name,
+                company_url=request.company_url,
+                keywords=request.keywords,
                 partners=request.partners,
                 research_results=research_results
             )
@@ -104,9 +114,14 @@ async def research_company(request: CompanyResearchRequest):
         
         return CompanyResearchResponse(
             company_name=request.company_name,
+            company_url=request.company_url,
+            keywords=request.keywords,
             partners=request.partners,
-            research_summary=summary,
+            research_summary=research_summary,
+            facility_summary=facility_summary,
+            sustainability_summary=sustainability_summary,
             esg_analysis=esg_analysis,
+            citations=citations,
             raw_research_data=research_results,
             processing_time_seconds=round(processing_time, 2)
         )
@@ -117,6 +132,20 @@ async def research_company(request: CompanyResearchRequest):
             status_code=500,
             detail=f"An error occurred during research: {str(e)}"
         )
+
+
+@app.post("/research/markdown", response_class=PlainTextResponse)
+async def research_company_markdown(request: CompanyResearchRequest):
+    """
+    Research a company and return results in markdown format (like test.md)
+    """
+    # Get JSON response first
+    json_response = await research_company(request)
+    
+    # Convert to markdown format
+    markdown_content = format_response_as_markdown(json_response)
+    
+    return markdown_content
 
 
 @app.get("/health")

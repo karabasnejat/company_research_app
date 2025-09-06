@@ -13,6 +13,8 @@ async def test_research():
     # Example request data
     request_data = CompanyResearchRequest(
         company_name="Banat Fırça ve Plastik San. Anonim Şti",
+        company_url="https://www.banat.com.tr",
+        keywords=["plastic manufacturing", "brush production", "industrial materials"],
         partners=[
             "Abdullah Hakan Özkök", 
             "Gökhan Özkök", 
@@ -24,6 +26,8 @@ async def test_research():
     
     print("Testing Company Research API...")
     print(f"Company: {request_data.company_name}")
+    print(f"Company URL: {request_data.company_url}")
+    print(f"Keywords: {request_data.keywords}")
     print(f"Partners: {request_data.partners}")
     print("\nStarting research...")
     

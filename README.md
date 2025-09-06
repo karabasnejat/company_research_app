@@ -55,6 +55,8 @@ A REST service built with FastAPI, LangChain, and Tavily for researching compani
    ```json
    {
      "company_name": "Banat Fırça ve Plastik San. Anonim Şti",
+     "company_url": "https://www.banat.com.tr",
+     "keywords": ["plastic manufacturing", "brush production", "industrial materials"],
      "partners": [
        "Abdullah Hakan Özkök", 
        "Gökhan Özkök", 
@@ -65,10 +67,51 @@ A REST service built with FastAPI, LangChain, and Tavily for researching compani
    }
    ```
 
+### Request Fields
+
+- `company_name` (required): Name of the company to research
+- `company_url` (optional): Company website URL for enhanced search
+- `keywords` (optional): List of keywords related to the company's business
+- `partners` (required): List of partner/founder names
+- `include_esg_analysis` (optional): Include ESG analysis (default: true)
+
+### Enhanced Search Capabilities
+
+The API now supports:
+- **URL-based searches**: When `company_url` is provided, the system performs targeted searches on the company website
+- **Keyword-enhanced queries**: `keywords` help create more focused search queries
+- **English query optimization**: All search queries are now optimized for English to improve international data coverage
+
 ## API Endpoints
 
-- `POST /research` - Research a company and its partners
+- `POST /research` - Research a company and its partners (JSON response)
+- `POST /research/markdown` - Research a company and return markdown format (like test.md)
 - `GET /` - Health check endpoint
+- `GET /health` - Detailed health check with service status
+
+### Response Format
+
+The API now returns enhanced responses with:
+- **Research Summary**: Main company analysis with citations
+- **Facility Summary**: Detailed facility and location information
+- **Sustainability Summary**: ESG and sustainability analysis
+- **Citations**: Numbered references [1], [2], [3] with source URLs
+- **ESG Analysis**: Comprehensive 7-category ESG evaluation
+
+### Citations Format
+
+All factual statements include numbered citations:
+```
+Banat Fırça ve Plastik San. Anonim Şirketi, 1947 yılında kurulmuş[1]...
+```
+
+Citations list:
+```
+[1] Company Profile - Banat Official Website
+https://www.banat.com/
+[2] Financial Information - Business Registry
+https://example.com/business-info
+```
 
 ## Environment Variables
 
